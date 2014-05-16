@@ -5,6 +5,9 @@ import java.util.Random;
 
 import javax.swing.JFrame;
 
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.factory.LinearSolver;
+import org.ejml.factory.LinearSolverFactory;
 import org.ejml.ops.RandomMatrices;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -20,13 +23,15 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 		JavaMatrixLibraryBenchmark frame = new JavaMatrixLibraryBenchmark();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setBounds(10, 10, 500, 500);
-		frame.setTitle("Benchmark");
+		frame.setTitle("Benchmark of Linear Solver");
 		frame.setVisible(true);
 	}
 
 	JavaMatrixLibraryBenchmark() {
 
 		final int n = 500;
+		long seed = System.currentTimeMillis();
+		Random rand = new Random(seed);
 
 		// jblas
 		XYSeries dataJblas = new XYSeries("jblas");
@@ -45,23 +50,30 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 		// float型マトリクスがないみたい
 		// ベクトル型はないみたい
 		// LinearSolverは細かくいろいろ設定できるみたい
-		// 演算の記述がわかりづらい
+		// 行列演算の関数multなどが、出力を引数に与える形式で好みでない
 		XYSeries dataEJML = new XYSeries("ejml");
 		for(int i=2; i<n; i++){
 			System.out.println("ejml i="+i);
-			Random rand = new Random();
 			org.ejml.data.DenseMatrix64F A = RandomMatrices.createRandom(i, i,rand);;
 			org.ejml.data.DenseMatrix64F b = RandomMatrices.createRandom(i, 1, rand);
 			org.ejml.data.DenseMatrix64F x = new org.ejml.data.DenseMatrix64F(i, 1);
 			long s = System.nanoTime();
-			if (!org.ejml.ops.CommonOps.solve(A, b, x)) {
-				System.out.println("EJML ERROR");
+			LinearSolver<DenseMatrix64F> solver = LinearSolverFactory.leastSquares(i,i);
+			if( !solver.setA(A) ) {
+				System.out.println("Singular matrix");
 				System.exit(0);
 			}
+			if( solver.quality() <= 1e-8 ){
+				System.out.println("Nearly Singular matrix");
+//				System.exit(0);
+			}
+			solver.solve(b,x);			
 			long e = System.nanoTime();
 			dataEJML.add(i, (e - s)*0.000001);
 		}
 
+		
+		// JFreeChartによるグラフの作成
 		XYSeriesCollection data = new XYSeriesCollection();
 		data.addSeries(dataJblas);
 		data.addSeries(dataEJML);
