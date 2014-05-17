@@ -34,12 +34,15 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 
 	JavaMatrixLibraryBenchmark() {
+		
+		// ベンチマーク実行
 		XYSeries dataJblasDouble = runJblasDouble();
 		XYSeries dataJblasFloat = runJblasFloat();
 		XYSeries dataEjml = runEjml();
 		XYSeries dataLa4j = runLa4j();
 		XYSeries dataJama = runJama();
 		XYSeries dataColt = runColt();
+		XYSeries dataCommonsMath = runCommonsMath();
 
 		// JFreeChartによるグラフの作成
 		XYSeriesCollection data = new XYSeriesCollection();
@@ -49,6 +52,7 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 		data.addSeries(dataLa4j);
 		data.addSeries(dataJama);
 		data.addSeries(dataColt);
+		data.addSeries(dataCommonsMath);
 		JFreeChart chart = ChartFactory.createScatterPlot(
 				"Benchmark of linear solver", "Matrix size", "Time [ms]", data,
 				PlotOrientation.VERTICAL, true, false, false);
@@ -114,15 +118,14 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 	
 	XYSeries runLa4j(){
+		// シンプル
 		// Sparse対応
 		// なぜかGAUSSIANが一番早い
 		XYSeries data = new XYSeries("la4j");
 		for (int i = min; i < max; i += bin) {
 			System.out.println("la4j i=" + i);
-			org.la4j.matrix.Matrix a = new Basic1DFactory().createRandomMatrix(
-					i, i);
-			org.la4j.vector.Vector b = new Basic1DFactory()
-					.createRandomVector(i);
+			org.la4j.matrix.Matrix a = new Basic1DFactory().createRandomMatrix(i, i);
+			org.la4j.vector.Vector b = new Basic1DFactory().createRandomVector(i);
 			long s = System.nanoTime();
 			LinearSystemSolver solver = a.withSolver(LinearAlgebra.GAUSSIAN);
 			solver.solve(b, LinearAlgebra.DENSE_FACTORY);
@@ -133,6 +136,7 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 	
 	XYSeries runJama(){
+		// シンプル
 		XYSeries data = new XYSeries("JAMA");
 		for (int i = min; i < max; i += bin) {
 			System.out.println("jama i=" + i);
@@ -160,5 +164,59 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 			data.add(i, (e - s) * 0.000001);
 		}
 		return data;
+	}
+	
+	XYSeries runCommonsMath(){
+		XYSeries data = new XYSeries("Commons Math");
+		Random rand = new Random();
+		for (int i = min; i < max; i += bin) {
+			System.out.println("Commons Math i=" + i);
+			double [][] Araw = new double[i][i];
+			for(int r=0; r<i; r++){
+				for(int c=0; c<i; c++){
+					Araw[r][c] = rand.nextDouble();
+				}
+			}
+			org.apache.commons.math3.linear.RealMatrix A = new org.apache.commons.math3.linear.Array2DRowRealMatrix(Araw, false);
+			double [] braw = new double[i];
+			for(int n=0; n<i; n++){
+				braw[n]=rand.nextDouble();
+			}
+			org.apache.commons.math3.linear.RealVector b = new org.apache.commons.math3.linear.ArrayRealVector(braw, false);
+			long s = System.nanoTime();
+			org.apache.commons.math3.linear.DecompositionSolver solver =
+					new org.apache.commons.math3.linear.LUDecomposition(A).getSolver();
+			solver.solve(b);
+			long e = System.nanoTime();
+			data.add(i, (e - s) * 0.000001);
+		}
+		return data;
+	}
+	
+	void testCommonsMath(){
+		// sparse対応
+		// 共役勾配法などもある
+		// 機械学習など多彩な機能が充実
+		// User Manualが詳しいが、基本的な行列演算の説明は皆無
+		Random rand = new Random();
+		int i = 3;
+		double [][] Araw = new double[i][i];
+		for(int r=0; r<i; r++){
+			for(int c=0; c<i; c++){
+				Araw[r][c] = rand.nextDouble();
+			}
+		}
+		org.apache.commons.math3.linear.RealMatrix A = new org.apache.commons.math3.linear.Array2DRowRealMatrix(Araw, false);
+		double [] braw = new double[i];
+		for(int n=0; n<i; n++){
+			braw[n]=rand.nextDouble();
+		}
+		org.apache.commons.math3.linear.RealVector b = new org.apache.commons.math3.linear.ArrayRealVector(braw, false);
+		org.apache.commons.math3.linear.DecompositionSolver solver =
+				new org.apache.commons.math3.linear.LUDecomposition(A).getSolver();
+		org.apache.commons.math3.linear.RealVector x = solver.solve(b);
+		org.apache.commons.math3.linear.RealVector Ax = A.operate(x);
+		System.out.println("Ax\t" + Ax);
+		System.out.println("b\t" + b);
 	}
 }
