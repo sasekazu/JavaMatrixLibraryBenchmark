@@ -1,6 +1,8 @@
 package info.sasekazu.javamatrixlibrarybenchmark;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Paint;
 import java.util.Random;
 
 import javax.swing.JFrame;
@@ -21,9 +23,9 @@ import org.la4j.linear.LinearSystemSolver;
 
 public class JavaMatrixLibraryBenchmark extends JFrame {
 	private static final long serialVersionUID = 1L;
-	final int max = 1000;
+	final int max = 500;
 	final int min = 2;
-	final int bin = 20;
+	final int bin = 10;
 
 	public static void main(String[] args) {
 		JavaMatrixLibraryBenchmark frame = new JavaMatrixLibraryBenchmark();
@@ -62,6 +64,7 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	
 	
 	XYSeries runJblasDouble(){
+		// 評判が良い
 		XYSeries data = new XYSeries("jblas(double)");
 		for (int i = min; i < max; i += bin) {
 			System.out.println("jblas(double) i=" + i);
@@ -76,6 +79,7 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 	
 	XYSeries runJblasFloat(){
+		// 評判が良い
 		XYSeries data = new XYSeries("jblas(float)");
 		for (int i = min; i < max; i += bin) {
 			System.out.println("jblas(float) i=" + i);
@@ -118,7 +122,7 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 	
 	XYSeries runLa4j(){
-		// シンプル
+		// シンプルで使いやすい
 		// Sparse対応
 		// なぜかGAUSSIANが一番早い
 		XYSeries data = new XYSeries("la4j");
@@ -136,7 +140,7 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 	
 	XYSeries runJama(){
-		// シンプル
+		// シンプルで使いやすい
 		XYSeries data = new XYSeries("JAMA");
 		for (int i = min; i < max; i += bin) {
 			System.out.println("jama i=" + i);
@@ -151,6 +155,8 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 	
 	XYSeries runColt(){
+		// 伝統的な線形代数ライブラリ
+		// parallel coltもある
 		XYSeries data = new XYSeries("colt");
 		cern.colt.matrix.DoubleFactory2D F = cern.colt.matrix.DoubleFactory2D.dense;
 		for (int i = min; i < max; i += bin) {
@@ -167,6 +173,10 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 	
 	XYSeries runCommonsMath(){
+		// sparse対応
+		// 共役勾配法などもある
+		// 機械学習など多彩な機能が充実
+		// User Manualが詳しいが、基本的な行列演算の説明は皆無
 		XYSeries data = new XYSeries("Commons Math");
 		Random rand = new Random();
 		for (int i = min; i < max; i += bin) {
@@ -194,10 +204,6 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 	}
 	
 	void testCommonsMath(){
-		// sparse対応
-		// 共役勾配法などもある
-		// 機械学習など多彩な機能が充実
-		// User Manualが詳しいが、基本的な行列演算の説明は皆無
 		Random rand = new Random();
 		int i = 3;
 		double [][] Araw = new double[i][i];
@@ -219,4 +225,5 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 		System.out.println("Ax\t" + Ax);
 		System.out.println("b\t" + b);
 	}
+	
 }
