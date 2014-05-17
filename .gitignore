@@ -11,4 +11,8 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
+!ejml-0.24.jar
 !jblas-1.2.3.jar
+!jcommon-1.0.21.jar
+!jfreechart-1.0.17.jar
+!la4j-0.4.9.jar
