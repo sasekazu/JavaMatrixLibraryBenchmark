@@ -92,6 +92,20 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 			long e = System.nanoTime();
 			dataLA4J.add(i, (e - s)*0.000001);
 		}
+		
+		// jama
+		// float”ñ‘Î‰ž
+		XYSeries dataJAMA = new XYSeries("JAMA");
+		for(int i=2; i<n; i+=10){
+			System.out.println("jama i="+i);
+			Jama.Matrix A = Jama.Matrix.random(i, i);
+			Jama.Matrix b = Jama.Matrix.random(i,1);
+			long s = System.nanoTime();
+			A.solve(b);
+			long e = System.nanoTime();
+			dataJAMA.add(i, (e - s)*0.000001);
+		}
+
 
 		
 		// JFreeChart‚É‚æ‚éƒOƒ‰ƒt‚Ìì¬
@@ -99,6 +113,7 @@ public class JavaMatrixLibraryBenchmark extends JFrame {
 		data.addSeries(dataJblas);
 		data.addSeries(dataEJML);
 		data.addSeries(dataLA4J);
+		data.addSeries(dataJAMA);
 		JFreeChart chart = ChartFactory.createScatterPlot(
 				"Benchmark of linear solver", "Matrix size", "Time [ms]", data,
 				PlotOrientation.VERTICAL, true, false, false);
